@@ -1,14 +1,17 @@
+const path = require('path')
+
 const express = require('express');
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
 
 const feedRoutes = require('./routes/feed')
-
-const bodyParser = require('body-parser')
 
 const app = express();
 
 // app.use(bodyParser.urlencoded) // x-www-form-urlencoded <form></form>
 
 app.use(bodyParser.json()); // application/json
+app.use('/images', express.static(path.join(__dirname, 'images')))
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*'); //render, json send headers setheader only sets the headers 
@@ -19,4 +22,18 @@ app.use((req, res, next) => {
 
 app.use('/feed', feedRoutes);
 
-app.listen(8080);
+app.use((error, req, res, next) => {
+    console.log(error);
+    const status = error.statusCode || 500;
+    const message = error.message;
+    res.status(status).json({
+        message: message
+    });
+})
+
+mongoose
+    .connect('mongodb+srv://rohit_kumawat:cunltC77NOGz1jqS@ecommerce-rs4wl.mongodb.net/messages?retryWrites=true')
+    .then(result => {
+        app.listen(8080);
+    })
+    .catch(err => console.log(err));
